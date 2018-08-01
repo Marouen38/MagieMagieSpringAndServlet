@@ -1,0 +1,32 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 13 juil. 2018, 12:06:45
+    Author     : Administrateur
+*/
+
+@charset "utf-8";
+
+body{
+    font-family: 'Montserrat', sans-serif;
+}
+a{
+    text-decoration: none;
+    
+}
+.listePartie{
+    background-color: white;
+}
+h3{
+    display: inline-block;
+}
+.joueur{
+    text-align: center;
+}
+.user{
+    font-size: 18px;
+}
+
