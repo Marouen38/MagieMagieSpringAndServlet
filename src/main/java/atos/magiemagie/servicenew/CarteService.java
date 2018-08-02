@@ -5,10 +5,9 @@
  */
 package atos.magiemagie.servicenew;
 
+import atos.magiemagie.dao.CarteDAOCrud;
 import atos.magiemagie.entity.Carte;
 import atos.magiemagie.entity.Joueur;
-import atos.magiemagie.dao.CarteDAO;
-import atos.magiemagie.dao.JoueurDAO;
 import atos.magiemagie.dao.JoueurDAOCrud;
 import java.util.List;
 import java.util.Random;
@@ -24,17 +23,19 @@ public class CarteService {
     
     @Autowired
     private JoueurDAOCrud joueurDAOCrud;
-    private CarteDAO dao = new CarteDAO();
+    
+    @Autowired
+    private CarteDAOCrud dao;
 
     public List<Carte> listerCartesParJoueurId(long joueurId) {
 
-        return dao.listerCartesParJoueurId(joueurId);
+        return dao.findAllByJoueurId(joueurId);
 
     }
 
     public void changerProprietaire(long idNouveauProprietaire, long idCarte) {
         //on récupère la carte avec l'id
-        Carte c=dao.rechercherCarteParSOnId(idCarte);
+        Carte c=dao.findOne(idCarte);
 
         //recupere le nouveau proprio par son  id 
         Joueur joueur = joueurDAOCrud.findOne(idNouveauProprietaire);
@@ -45,7 +46,7 @@ public class CarteService {
  
         
         //on met a jour la carte a l'aide du dao
-        dao.modifier(c);
+        dao.save(c);
 
        
     }
@@ -69,7 +70,7 @@ public class CarteService {
 
     
     public void modifier(Carte carteAPrendre) {
-        dao.modifier(carteAPrendre);
+        dao.save(carteAPrendre);
     }
 
 }

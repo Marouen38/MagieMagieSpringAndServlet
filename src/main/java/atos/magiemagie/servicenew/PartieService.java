@@ -5,11 +5,10 @@
  */
 package atos.magiemagie.servicenew;
 
+import atos.magiemagie.dao.JoueurDAOCrud;
 import atos.magiemagie.entity.Carte;
 import atos.magiemagie.entity.Joueur;
 import atos.magiemagie.entity.Partie;
-import atos.magiemagie.dao.JoueurDAO;
-import atos.magiemagie.dao.PartieDAO;
 import atos.magiemagie.dao.PartieDAOCrud;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.sym;
 import java.util.List;
@@ -27,8 +26,11 @@ public class PartieService {
     @Autowired
     private PartieDAOCrud daoCrud;
 
-    private PartieDAO partieDAO = new PartieDAO();
-    private JoueurDAO joueurDAO = new JoueurDAO();
+    @Autowired
+    private PartieDAOCrud partieDAO;
+    
+    @Autowired
+    private JoueurDAOCrud joueurDAO;
     private JoueurService joueurService = new JoueurService();
     private CarteService carteService = new CarteService();
 
@@ -165,9 +167,9 @@ public class PartieService {
         
         //une victime qui ne pourra pas lancer de sorts pendant 1 tours
         
-        joueurDAO.rechercherParID(victime.getId()).setEtat(Joueur.EtatJoueur.SOMMEIL_PROFOND);
+        joueurDAO.findOne(victime.getId()).setEtat(Joueur.EtatJoueur.SOMMEIL_PROFOND);
    
-        joueurDAO.modifier(victime);
+        joueurDAO.save(victime);
         
         
         
@@ -176,7 +178,7 @@ public class PartieService {
     public void passeJoueurSuivant(long partieId) {
 
         //1- recuperer joueur qui a la main = joueurQuiALaMain
-        Joueur joueurQuiALaMain = joueurDAO.recupereJoueurALaMAin(partieId);
+        Joueur joueurQuiALaMain = joueurDAO.findOneByPartieIdAndEtat(partieId,Joueur.EtatJoueur.A_LA_MAIN);
 
         //2- Determine si tous autres joueurs ont perdu
         
@@ -191,9 +193,9 @@ public class PartieService {
         
         //if (servPartie.finPartie(partieId))
         
-        if (partieDAO.determineSiPlusQueUnJoueurDansPartie(partieId)) {
+        if (partieDAO.countJoueurId(partieId)) {
             joueurQuiALaMain.setEtat(Joueur.EtatJoueur.GAGNE);
-            joueurDAO.modifier(joueurQuiALaMain);
+            joueurDAO.save(joueurQuiALaMain);
             return;
         }
         //  else {
@@ -213,10 +215,10 @@ public class PartieService {
             //si joueurEvalue est le dernier joueur alors on evalue
             if (joueurEvalue.getOdre() >= ordreMax) {
                 //ordreProchain = 1;
-                joueurEvalue = joueurDAO.rechercheJoueurParOrdreEtParId(partieId, 1L);
+                joueurEvalue = joueurDAO.findOneByPartieIdAndOrdre(partieId, 1L);
             } else {
                 //ordreProchain = joueurQuiALaMain.getOrdre() + 1;
-                joueurEvalue = joueurDAO.rechercheJoueurParOrdreEtParId(partieId, joueurEvalue.getOdre() + 1);
+                joueurEvalue = joueurDAO.findOneByPartieIdAndOrdre(partieId, joueurEvalue.getOdre() + 1);
             }
             //Joueur prochain = joueurDAO.recupererJoueurProchain(partieId, ordreProchain);
 
@@ -226,14 +228,14 @@ public class PartieService {
             }
             if (joueurEvalue.getEtat() == Joueur.EtatJoueur.SOMMEIL_PROFOND) {
                 joueurEvalue.setEtat(Joueur.EtatJoueur.N_A_PAS_LA_MAIN);
-                joueurDAO.modifier(joueurEvalue);
+                joueurDAO.save(joueurEvalue);
                 //prochainNonTrouve = true;
                 //si joueurEvalue pas la main alors c'est lui qui prend la main
             } else if (joueurEvalue.getEtat() == Joueur.EtatJoueur.N_A_PAS_LA_MAIN) {
                 joueurEvalue.setEtat(Joueur.EtatJoueur.A_LA_MAIN);
-                joueurDAO.modifier(joueurEvalue);
+                joueurDAO.save(joueurEvalue);
                 joueurQuiALaMain.setEtat(Joueur.EtatJoueur.N_A_PAS_LA_MAIN);
-                joueurDAO.modifier(joueurQuiALaMain);
+                joueurDAO.save(joueurQuiALaMain);
                 // prochainNonTrouve = false;
                 return;
             }
@@ -308,9 +310,9 @@ public class PartieService {
      * @return
      */
     public List<Joueur> autresJoueurs(long joueurId) {
-        Joueur joueur = joueurDAO.rechercherParID(joueurId);
+        Joueur joueur = joueurDAO.findOne(joueurId);
         Partie partie = joueur.getPartie();
-        List<Joueur> joueurs = partieDAO.listerJoueurs(partie.getId());
+        List<Joueur> joueurs = joueurDAO.findAllByPartieId(partie.getId());
         for (Joueur joueur1 : joueurs) {
             if (joueur == joueur1) {
                 joueurs.remove(joueur1);
@@ -318,9 +320,6 @@ public class PartieService {
             }
         }
         return joueurs;
-        
-        
-        
         
     }
     
